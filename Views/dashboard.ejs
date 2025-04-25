@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head><title>Dashboard</title></head>
+<body>
+  <h1>Welcome, <%= user.username %>!</h1>
+  <p>Your user ID: <%= user._id %></p>
+
+  <h2>Next up</h2>
+  <ul>
+    <li>Create or subscribe to topics</li>
+    <li>View 2 recent messages per topic</li>
+    <li>Post messages, unsubscribe</li>
+  </ul>
+
+  <a href="/api/users/login">Logout</a>
+</body>
+</html>

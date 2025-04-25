@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sign up for X</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #000;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .register-container {
+      width: 100%;
+      max-width: 400px;
+      padding: 40px;
+      border: 1px solid #333;
+      border-radius: 8px;
+      background-color: #121212;
+    }
+    .register-container h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #1DA1F2;
+    }
+    .register-container label {
+      display: block;
+      margin-bottom: 5px;
+      color: #ccc;
+    }
+    .register-container input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #555;
+      border-radius: 4px;
+      background-color: #1a1a1a;
+      color: #fff;
+    }
+    .register-container button {
+      width: 100%;
+      padding: 10px;
+      background-color: #1DA1F2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .register-container button:hover {
+      background-color: #0d8ddb;
+    }
+    .register-container p {
+      text-align: center;
+      margin-top: 15px;
+    }
+    .register-container a {
+      color: #1DA1F2;
+      text-decoration: none;
+    }
+    .register-container a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="register-container">
+    <h2>Sign up for X</h2>
+    <form method="POST" action="/api/users/register">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" placeholder="Choose a username" required>
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" placeholder="Create a password" required>
+
+      <button type="submit">Sign Up</button>
+    </form>
+    <p>Already have an account? <a href="/api/users/login">Log in</a></p>
+  </div>
+</body>
+</html>
