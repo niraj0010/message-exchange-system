@@ -2,33 +2,39 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const connectDB = require('./utils/db');
-const userRoutes = require('./routes/userRoutes'); // User-related routes
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
-// Middlewares
+// Middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // To handle form submissions
+app.use(express.urlencoded({ extended: true }));
 
 // Set up EJS view engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-app.use(express.static(path.join(__dirname, 'public'))); // For static files like CSS (optional)
+
+// Serve static files
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
-app.use('/api/users', userRoutes); // Register/Login form + POST
+app.use('/api/users', userRoutes);
 
 // Home route
-app.get('/', (req, res) => res.send('Message Exchange System API'));
+// In your index.js
+app.get('/', (req, res) => {
+  res.redirect('/api/users/login');
+});
 
 const PORT = process.env.PORT || 3000;
 
+// Connect to MongoDB and start the server
 connectDB()
   .then(() => {
     app.listen(PORT, () => {
-      console.log(` Server running on http://localhost:${PORT}`);
+      console.log(`Server running on http://localhost:${PORT}`);
     });
   })
   .catch(err => {
-    console.error(' MongoDB connection error:', err);
+    console.error('MongoDB connection error:', err);
   });
