@@ -1,72 +1,100 @@
-const { MongoClient } = require('mongodb');
-const dbInstance = require('../db'); 
+const mongoose = require('mongoose');
+const dbInstance = require('../utils/db')();
+
+// Define the Topic schema
+const topicSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  creator: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  subscribers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  },
+  accessCount: {
+    type: Number,
+    default: 0
+  }
+});
+
+// Create the Topic model
+const TopicModel = dbInstance.getModel('Topic', topicSchema);
 
 class Topic {
-    constructor() {
-        this.collection = dbInstance.getDb().collection('topics');
-    }
+  // Create a new topic
+  async create(name, creatorId) {
+    const topic = new TopicModel({
+      name,
+      creator: creatorId,
+      subscribers: [creatorId] // Creator is automatically subscribed
+    });
+    
+    return await topic.save();
+  }
 
-    // Create a new topic
-    async create(name, creatorId) {
-        const topic = {
-            name,
-            creator: creatorId,
-            subscribers: [creatorId], 
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            accessCount: 0
-        };
-        
-        const result = await this.collection.insertOne(topic);
-        return result.ops[0];
-    }
+  // Subscribe a user to a topic
+  async subscribe(topicId, userId) {
+    return await TopicModel.findByIdAndUpdate(
+      topicId,
+      { $addToSet: { subscribers: userId }, $set: { updatedAt: new Date() } },
+      { new: true }
+    );
+  }
 
-    // Subscribe a user to a topic
-    async subscribe(topicId, userId) {
-        return await this.collection.updateOne(
-            { _id: topicId },
-            { $addToSet: { subscribers: userId }, $set: { updatedAt: new Date() } }
-        );
-    }
+  // Unsubscribe a user from a topic
+  async unsubscribe(topicId, userId) {
+    return await TopicModel.findByIdAndUpdate(
+      topicId,
+      { $pull: { subscribers: userId }, $set: { updatedAt: new Date() } },
+      { new: true }
+    );
+  }
 
-    // Unsubscribe a user from a topic
-    async unsubscribe(topicId, userId) {
-        return await this.collection.updateOne(
-            { _id: topicId },
-            { $pull: { subscribers: userId }, $set: { updatedAt: new Date() } }
-        );
-    }
+  // Get all topics
+  async getAll() {
+    return await TopicModel.find().sort({ createdAt: -1 });
+  }
 
-    // Get all topics
-    async getAll() {
-        return await this.collection.find().toArray();
-    }
+  // Get topics a user is subscribed to
+  async getSubscribedTopics(userId) {
+    return await TopicModel.find({ subscribers: userId }).sort({ updatedAt: -1 });
+  }
 
-    // Get topics a user is subscribed to
-    async getSubscribedTopics(userId) {
-        return await this.collection.find({ subscribers: userId }).toArray();
-    }
+  // Increment access count for a topic
+  async incrementAccessCount(topicId) {
+    return await TopicModel.findByIdAndUpdate(
+      topicId,
+      { $inc: { accessCount: 1 } },
+      { new: true }
+    );
+  }
 
-    // Increment access count for a topic
-    async incrementAccessCount(topicId) {
-        return await this.collection.updateOne(
-            { _id: topicId },
-            { $inc: { accessCount: 1 } }
-        );
-    }
-
-    // Get topic by ID
-    async getById(topicId) {
-        return await this.collection.findOne({ _id: topicId });
-    }
+  // Get topic by ID
+  async getById(topicId) {
+    return await TopicModel.findById(topicId);
+  }
 }
 
 // Singleton pattern for Topic model
 let topicInstance = null;
 
 module.exports = () => {
-    if (!topicInstance) {
-        topicInstance = new Topic();
-    }
-    return topicInstance;
+  if (!topicInstance) {
+    topicInstance = new Topic();
+  }
+  return topicInstance;
 };

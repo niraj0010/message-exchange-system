@@ -21,7 +21,7 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-// Log in an existing user
+/// Log in an existing user
 exports.loginUser = async (req, res) => {
   const { username, password } = req.body;
 
@@ -34,7 +34,13 @@ exports.loginUser = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.send('Incorrect password');
 
-    res.render('dashboard', { user }); // pass user to dashboard view
+    // Render dashboard with just user info for now
+    res.render('dashboard', { 
+      user: {
+        _id: user._id,
+        username: user.username
+      }
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send('Server error during login');
