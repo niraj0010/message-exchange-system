@@ -1,24 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const topicController = require('../controllers/topicController')();
+const controller = require('../controllers/topicController')(); // ✅ singleton instance
 
-
-// Create a new topic
-router.post('/', topicController.createTopic);
-
-// Subscribe to a topic
-router.post('/:topicId/subscribe', topicController.subscribeToTopic);
-
-// Unsubscribe from a topic
-router.post('/:topicId/unsubscribe', topicController.unsubscribeFromTopic);
-
-// Get all topics (for subscription)
-router.get('/', topicController.getAllTopics);
-
-// Get subscribed topics
-router.get('/subscribed', topicController.getSubscribedTopics);
-
-// Get topic statistics
-router.get('/:topicId/stats', topicController.getTopicStats);
+// ✅ Routes with proper 'this' binding
+router.post('/', controller.createTopic.bind(controller));
+router.post('/:topicId/subscribe', controller.subscribeToTopic.bind(controller));
+router.post('/:topicId/unsubscribe', controller.unsubscribeFromTopic.bind(controller));
+router.get('/', controller.getAllTopics.bind(controller));
+router.get('/subscribed', controller.getSubscribedTopics.bind(controller));
+router.get('/:topicId/stats', controller.getTopicStats.bind(controller));
+router.get('/browse', controller.renderBrowseTopicsPage.bind(controller));
+router.get('/stats', controller.renderStatsPage.bind(controller)); // ✅ This is what was missing
 
 module.exports = router;

@@ -1,140 +1,163 @@
-const Topic = require('../models/topic'); 
+const Topic = require('../models/topic');
 const topicModel = Topic();
 
 class TopicController {
-    constructor() {
-        this.observers = []; // For Observer pattern
+  constructor() {
+    this.observers = [];
+  }
+
+  addObserver(observer) {
+    this.observers.push(observer);
+  }
+
+  removeObserver(observer) {
+    this.observers = this.observers.filter(obs => obs !== observer);
+  }
+
+  notifyObservers(event, data) {
+    this.observers.forEach(observer => observer.update(event, data));
+  }
+
+  // ✅ Create a new topic
+  async createTopic(req, res) {
+    try {
+      const { name } = req.body;
+      const creatorId = req.session?.user?._id;
+
+      if (!name || !creatorId) {
+        return res.status(400).json({ error: 'Topic name and user ID are required' });
+      }
+
+      const topic = await topicModel.create(name, creatorId);
+      this.notifyObservers('TOPIC_CREATED', topic);
+      res.redirect('/api/users/dashboard');
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
+  }
 
-    // Observer pattern methods
-    addObserver(observer) {
-        this.observers.push(observer);
+  // ✅ Browse all topics (view)
+  async renderBrowseTopicsPage(req, res) {
+    try {
+      const topics = await topicModel.getAll();
+      const userId = req.session?.user?._id;
+  
+      const subscribedTopics = userId
+        ? await topicModel.getSubscribedTopics(userId)
+        : [];
+  
+      const subscribedIds = subscribedTopics.map(t => t._id.toString());
+  
+      res.render('browseTopics', {
+        topics,
+        subscribedIds,
+        user: req.session.user
+      });
+    } catch (err) {
+      console.error('❌ Failed to load browse page:', err);
+      res.status(500).send('Failed to load topics');
     }
+  }
+  
 
-    removeObserver(observer) {
-        this.observers = this.observers.filter(obs => obs !== observer);
+  // ✅ Subscribe to a topic
+  async subscribeToTopic(req, res) {
+    try {
+      const { topicId } = req.params;
+      const userId = req.session?.user?._id;
+
+      if (!userId) return res.status(401).send('Unauthorized');
+
+      const topic = await topicModel.getById(topicId);
+      if (!topic) return res.status(404).send('Topic not found');
+
+      await topicModel.subscribe(topicId, userId);
+      this.notifyObservers('TOPIC_SUBSCRIBED', { topicId, userId });
+
+      res.redirect('/topics/browse');
+    } catch (error) {
+      res.status(500).send('Error subscribing to topic');
     }
+  }
 
-    notifyObservers(event, data) {
-        this.observers.forEach(observer => observer.update(event, data));
+  // ✅ Unsubscribe from a topic
+  async unsubscribeFromTopic(req, res) {
+    try {
+      const { topicId } = req.params;
+      const userId = req.session?.user?._id;
+
+      if (!userId) return res.status(401).send('Unauthorized');
+
+      const topic = await topicModel.getById(topicId);
+      if (!topic) return res.status(404).send('Topic not found');
+
+      await topicModel.unsubscribe(topicId, userId);
+      this.notifyObservers('TOPIC_UNSUBSCRIBED', { topicId, userId });
+
+      res.redirect('/topics/browse');
+    } catch (error) {
+      res.status(500).send('Error unsubscribing from topic');
     }
+  }
 
-    // Create a new topic
-    async createTopic(req, res) {
-        try {
-            const { name } = req.body;
-            const creatorId = req.user._id; // Assuming user is authenticated
-            
-            if (!name) {
-                return res.status(400).json({ error: 'Topic name is required' });
-            }
-
-            const topic = await topicModel.create(name, creatorId);
-            
-            // Notify observers about new topic creation
-            this.notifyObservers('TOPIC_CREATED', topic);
-            
-            res.status(201).json(topic);
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
+  // ✅ Get all topics (API)
+  async getAllTopics(req, res) {
+    try {
+      const topics = await topicModel.getAll();
+      res.json(topics);
+    } catch (error) {
+      res.status(500).send('Error retrieving topics');
     }
+  }
 
-    // Subscribe to a topic
-    async subscribeToTopic(req, res) {
-        try {
-            const { topicId } = req.params;
-            const userId = req.user._id;
-            
-            const topic = await topicModel.getById(topicId);
-            if (!topic) {
-                return res.status(404).json({ error: 'Topic not found' });
-            }
+  // ✅ Get subscribed topics for current user
+  async getSubscribedTopics(req, res) {
+    try {
+      const userId = req.session?.user?._id;
+      if (!userId) return res.status(401).send('Unauthorized');
 
-            await topicModel.subscribe(topicId, userId);
-            
-            // Notify observers about subscription
-            this.notifyObservers('TOPIC_SUBSCRIBED', { topicId, userId });
-            
-            res.status(200).json({ message: 'Subscribed successfully' });
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
+      const topics = await topicModel.getSubscribedTopics(userId);
+      res.json(topics);
+    } catch (error) {
+      res.status(500).send('Error retrieving subscribed topics');
     }
-
-    // Unsubscribe from a topic
-    async unsubscribeFromTopic(req, res) {
-        try {
-            const { topicId } = req.params;
-            const userId = req.user._id;
-            
-            const topic = await topicModel.getById(topicId);
-            if (!topic) {
-                return res.status(404).json({ error: 'Topic not found' });
-            }
-
-            await topicModel.unsubscribe(topicId, userId);
-            
-            // Notify observers about unsubscription
-            this.notifyObservers('TOPIC_UNSUBSCRIBED', { topicId, userId });
-            
-            res.status(200).json({ message: 'Unsubscribed successfully' });
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
+  }
+  async renderStatsPage(req, res) {
+    try {
+      const allTopics = await topicModel.getAll(); // or a dedicated getStats() method
+      res.render('stats', { stats: allTopics });
+    } catch (err) {
+      res.status(500).send('Failed to load topic stats');
     }
+  }
+  
 
-    // Get all topics for subscription
-    async getAllTopics(req, res) {
-        try {
-            const topics = await topicModel.getAll();
-            res.status(200).json(topics);
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
-    }
+  // ✅ Topic statistics
+  async getTopicStats(req, res) {
+    try {
+      const { topicId } = req.params;
+      const topic = await topicModel.getById(topicId);
 
-    // Get subscribed topics
-    async getSubscribedTopics(req, res) {
-        try {
-            const userId = req.user._id;
-            const topics = await topicModel.getSubscribedTopics(userId);
-            res.status(200).json(topics);
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
-    }
+      if (!topic) return res.status(404).send('Topic not found');
 
-    // Get topic statistics (access count)
-    async getTopicStats(req, res) {
-        try {
-            const { topicId } = req.params;
-            const topic = await topicModel.getById(topicId);
-            
-            if (!topic) {
-                return res.status(404).json({ error: 'Topic not found' });
-            }
-            
-            // Increment access count when stats are viewed
-            await topicModel.incrementAccessCount(topicId);
-            
-            res.status(200).json({
-                topicId: topic._id,
-                topicName: topic.name,
-                accessCount: topic.accessCount
-            });
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
+      await topicModel.incrementAccessCount(topicId);
+
+      res.json({
+        topicId: topic._id,
+        topicName: topic.name,
+        accessCount: topic.accessCount
+      });
+    } catch (error) {
+      res.status(500).send('Error retrieving topic stats');
     }
+  }
 }
 
-// Singleton pattern for TopicController
+// Singleton export
 let topicControllerInstance = null;
-
 module.exports = () => {
-    if (!topicControllerInstance) {
-        topicControllerInstance = new TopicController();
-    }
-    return topicControllerInstance;
+  if (!topicControllerInstance) {
+    topicControllerInstance = new TopicController();
+  }
+  return topicControllerInstance;
 };
