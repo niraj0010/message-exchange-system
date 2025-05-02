@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Topic Stats</title>
+  <style>
+    body {
+      background: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    h1, h3 {
+      color: #1DA1F2;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 12px;
+      border: 1px solid #444;
+      text-align: left;
+    }
+
+    th {
+      background: #1DA1F2;
+    }
+
+    tr:nth-child(even) {
+      background: #1a1a1a;
+    }
+
+    #accessChart {
+      margin-top: 40px;
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Topic Access Stats</h1>
+
+  <!-- Table -->
+  <table>
+    <thead>
+      <tr>
+        <th>Topic</th>
+        <th>Access Count</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% stats.forEach(stat => { %>
+        <tr>
+          <td><%= stat.name %></td>
+          <td><%= stat.accessCount %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+
+  <!-- Chart Data (safe rendering) -->
+  <div id="chartData" 
+       data-labels="<%= stats.map(stat => stat.name).join(',') %>" 
+       data-values="<%= stats.map(stat => stat.accessCount).join(',') %>">
+  </div>
+
+  <h3>Topic Access Chart</h3>
+  <canvas id="accessChart" width="800" height="400"></canvas>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const dataDiv = document.getElementById('chartData');
+
+      const labels = dataDiv.getAttribute('data-labels').split(',');
+      const values = dataDiv.getAttribute('data-values').split(',').map(Number);
+
+      const ctx = document.getElementById('accessChart').getContext('2d');
+
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Access Count',
+            data: values,
+            backgroundColor: '#1DA1F2',
+            borderColor: '#0d8ddb',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: { mode: 'index', intersect: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { color: '#ccc' },
+              grid: { color: '#333' }
+            },
+            x: {
+              ticks: { color: '#ccc' },
+              grid: { color: '#333' }
+            }
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,10 +1,11 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
-const open = require('open'); // CommonJS-compatible version (open@8.4.0)
+const open = require('open'); // Automatically opens browser
 const connectDB = require('./utils/db');
 const userRoutes = require('./routes/userRoutes');
 const topicRoutes = require('./routes/topicRoute');
+const statsRoute = require('./routes/statsRoute'); // ✅ Added
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/topics', topicRoutes);
+app.use('/', statsRoute); // ✅ Add the stats route here
 
 // Home redirect
 app.get('/', (req, res) => {

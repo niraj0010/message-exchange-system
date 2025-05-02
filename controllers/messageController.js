@@ -1,5 +1,5 @@
 const Message = require('../models/Message')();
-const Topic = require('../models/Topic')(); 
+const Topic = require('../models/topic')(); 
 
 class MessageController {
   // Post a message to a topic
