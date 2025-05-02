@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Topic Stats</title>
+  <title>Topic Subscribers</title>
   <style>
     body {
       background: #121212;
@@ -11,8 +11,8 @@
       padding: 20px;
     }
 
-    h1, h3 {
-      color: #1DA1F2;
+    h1 {
+      color: #17d96e;
     }
 
     table {
@@ -28,14 +28,14 @@
     }
 
     th {
-      background: #1DA1F2;
+      background: #17d96e;
     }
 
     tr:nth-child(even) {
       background: #1a1a1a;
     }
 
-    #accessChart {
+    #subChart {
       margin-top: 40px;
       background: #1a1a1a;
       padding: 20px;
@@ -44,74 +44,61 @@
   </style>
 </head>
 <body>
-  <h1>Topic Access Stats</h1>
+  <h1>Topic Subscribers</h1>
 
   <!-- Table -->
   <table>
     <thead>
       <tr>
         <th>Topic</th>
-        <th>Access Count</th>
+        <th>Subscribers</th>
       </tr>
     </thead>
     <tbody>
       <% stats.forEach(stat => { %>
         <tr>
           <td><%= stat.name %></td>
-          <td><%= stat.accessCount %></td>
+          <td><%= stat.subscribersCount %></td>
         </tr>
       <% }); %>
     </tbody>
   </table>
 
-  <!-- Chart Data (safe rendering) -->
-  <div id="chartData" 
-       data-labels="<%= stats.map(stat => stat.name).join(',') %>" 
-       data-values="<%= stats.map(stat => stat.accessCount).join(',') %>">
+  <!-- Chart Data -->
+  <div id="chartData"
+       data-labels="<%= stats.map(stat => stat.name).join(',') %>"
+       data-values="<%= stats.map(stat => stat.subscribersCount).join(',') %>">
   </div>
 
-  <h3>Topic Access Chart</h3>
-  <canvas id="accessChart" width="800" height="400"></canvas>
+  <canvas id="subChart" width="800" height="400"></canvas>
 
-  <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const dataDiv = document.getElementById('chartData');
-
       const labels = dataDiv.getAttribute('data-labels').split(',');
       const values = dataDiv.getAttribute('data-values').split(',').map(Number);
 
-      const ctx = document.getElementById('accessChart').getContext('2d');
+      const ctx = document.getElementById('subChart').getContext('2d');
 
       new Chart(ctx, {
         type: 'bar',
         data: {
           labels: labels,
           datasets: [{
-            label: 'Access Count',
+            label: 'Subscribers',
             data: values,
-            backgroundColor: '#1DA1F2',
-            borderColor: '#0d8ddb',
+            backgroundColor: '#17d96e',
+            borderColor: '#0fa54c',
             borderWidth: 1
           }]
         },
         options: {
           responsive: true,
-          plugins: {
-            legend: { display: false },
-            tooltip: { mode: 'index', intersect: false }
-          },
+          plugins: { legend: { display: false } },
           scales: {
-            y: {
-              beginAtZero: true,
-              ticks: { color: '#ccc' },
-              grid: { color: '#333' }
-            },
-            x: {
-              ticks: { color: '#ccc' },
-              grid: { color: '#333' }
-            }
+            y: { beginAtZero: true, ticks: { color: '#ccc' }, grid: { color: '#333' } },
+            x: { ticks: { color: '#ccc' }, grid: { color: '#333' } }
           }
         }
       });

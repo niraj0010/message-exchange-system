@@ -124,12 +124,20 @@ class TopicController {
   }
   async renderStatsPage(req, res) {
     try {
-      const allTopics = await topicModel.getAll(); // or a dedicated getStats() method
-      res.render('stats', { stats: allTopics });
+      const allTopics = await topicModel.getAll();
+  
+      const stats = allTopics.map(topic => ({
+        name: topic.name,
+        subscribersCount: topic.subscribers?.length || 0
+      }));
+  
+      res.render('stats', { stats }); // Only send subscriber data now
     } catch (err) {
+      console.error('❌ Failed to load topic stats:', err);
       res.status(500).send('Failed to load topic stats');
     }
-  }
+  } 
+  
   
 
   // ✅ Topic statistics
