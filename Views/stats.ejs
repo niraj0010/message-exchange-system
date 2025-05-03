@@ -113,10 +113,10 @@
     <!-- Time Range Filter -->
     <div class="mb-4">
       <label for="timeRange" class="form-label"><i class="fas fa-calendar-alt me-2"></i> Filter by Time Range:</label>
-      <select id="timeRange" class="form-select w-auto d-inline-block">
-        <option value="all">All Time</option>
-        <option value="7days">Last 7 Days</option>
-        <option value="30days">Last 30 Days</option>
+      <select id="timeRange" class="form-select w-auto d-inline-block" onchange="updateTimeRange()">
+        <option value="all" <%= timeRange === 'all' ? 'selected' : '' %>>All Time</option>
+        <option value="7days" <%= timeRange === '7days' ? 'selected' : '' %>>Last 7 Days</option>
+        <option value="30days" <%= timeRange === '30days' ? 'selected' : '' %>>Last 30 Days</option>
       </select>
     </div>
 
@@ -134,6 +134,7 @@
                 <th scope="col">Subscribers</th>
                 <th scope="col">Posts</th>
                 <th scope="col">Top Contributor</th>
+                <th scope="col">Avg. Upvotes/Post</th>
               </tr>
             </thead>
             <tbody>
@@ -149,6 +150,7 @@
                       <span class="text-muted">N/A</span>
                     <% } %>
                   </td>
+                  <td><%= stat.avgUpvotesPerPost %></td>
                 </tr>
               <% }); %>
             </tbody>
@@ -197,6 +199,12 @@
         // Update chart colors dynamically
         updateChartColors(newTheme);
       });
+
+      // Function to update time range and reload page
+      window.updateTimeRange = function() {
+        const timeRange = document.getElementById('timeRange').value;
+        window.location.href = `/topics/stats?timeRange=${timeRange}`;
+      };
 
       // Initial chart setup
       const dataDiv = document.getElementById('chartData');
@@ -264,19 +272,7 @@
         chart.update();
       }
 
-      // Time Range Filter
-      document.getElementById('timeRange').addEventListener('change', function () {
-        const range = this.value;
-        // Mock filtering logic (you'll need to update this with actual backend data filtering)
-        let filteredValues = values;
-        if (range === '7days') {
-          filteredValues = values.map(val => Math.floor(val * 0.3)); // Mock 30% of posts
-        } else if (range === '30days') {
-          filteredValues = values.map(val => Math.floor(val * 0.7)); // Mock 70% of posts
-        }
-        chart.data.datasets[0].data = filteredValues;
-        chart.update();
-      });
+      // Remove client-side filtering since it's now handled by the backend
     });
   </script>
 </body>

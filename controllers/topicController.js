@@ -126,51 +126,68 @@ class TopicController {
   async renderStatsPage(req, res) {
     try {
       const allTopics = await topicModel.getAll();
+      const timeRange = req.query.timeRange || 'all';
+
+      // Calculate date range for filtering
+      let dateFilter = {};
+      if (timeRange === '7days') {
+        dateFilter = { createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } };
+      } else if (timeRange === '30days') {
+        dateFilter = { createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } };
+      }
 
       const stats = await Promise.all(
         allTopics.map(async (topic) => {
-          const posts = await Post.getPostsByTopic(topic._id);
+          // Pass dateFilter to getPostsByTopic
+          const posts = await Post.getPostsByTopic(topic._id, dateFilter);
           
-          // Calculate top contributor
+          // Calculate top contributor and engagement metrics
           let topContributor = null;
+          let totalUpvotes = 0;
+          let avgUpvotesPerPost = 0;
+
           if (posts.length > 0) {
-            // Count posts per user
+            // Count posts per user for top contributor
             const userPostCounts = {};
             posts.forEach(post => {
-              // Ensure post.author exists and has _id and username
               if (post.author && post.author._id && post.author.username) {
                 const authorId = post.author._id.toString();
                 userPostCounts[authorId] = (userPostCounts[authorId] || 0) + 1;
               }
+              // Sum upvotes for engagement metric
+              totalUpvotes += post.upvotes ? post.upvotes.length : 0;
             });
 
-            // Find the user with the most posts
+            // Find top contributor
             if (Object.keys(userPostCounts).length > 0) {
               const topUserId = Object.keys(userPostCounts).reduce((a, b) =>
                 userPostCounts[a] > userPostCounts[b] ? a : b
               );
               const topUserCount = userPostCounts[topUserId];
 
-              // Since author is populated, get the username directly
               if (topUserCount > 0) {
                 const topUser = posts.find(post => post.author._id.toString() === topUserId);
                 topContributor = topUser ? topUser.author.username : null;
               }
             }
+
+            // Calculate average upvotes per post
+            avgUpvotesPerPost = posts.length > 0 ? (totalUpvotes / posts.length).toFixed(1) : 0;
           }
 
           return {
             name: topic.name,
             subscribersCount: topic.subscribers?.length || 0,
             postCount: posts.length,
-            topContributor: topContributor
+            topContributor: topContributor,
+            avgUpvotesPerPost: avgUpvotesPerPost
           };
         })
       );
 
       const maxPostCount = Math.max(...stats.map(s => s.postCount), 0);
 
-      res.render('stats', { stats, maxPostCount });
+      res.render('stats', { stats, maxPostCount, timeRange });
     } catch (err) {
       console.error('❌ Failed to load topic stats:', err);
       res.status(500).send('Failed to load topic stats');
