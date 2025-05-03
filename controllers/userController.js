@@ -2,6 +2,8 @@ const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const Topic = require('../models/topic'); // Import your Topic model singleton
 const topicModel = Topic(); // Call it to get the instance
+const Post = require('../models/post'); // Import your Post model singleton
+const postModel = Post(); // Call it to get the instance
 
 
 // Register a new user
@@ -63,12 +65,16 @@ exports.getDashboard = async (req, res) => {
 
   try {
     const topics = await topicModel.getSubscribedTopics(req.session.user._id);
+    const posts = await postModel.getPostsForUserSubscriptions(req.session.user._id); // ✅ reuse method
+
     res.render('dashboard', {
       user: req.session.user,
-      userTopics: topics // Pass subscribed topics to the view
+      userTopics: topics,
+      posts
     });
   } catch (err) {
     console.error('❌ Dashboard load error:', err);
     res.status(500).send('Error loading dashboard');
   }
 };
+

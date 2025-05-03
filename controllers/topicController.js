@@ -159,6 +159,34 @@ class TopicController {
       res.status(500).send('Error retrieving topic stats');
     }
   }
+  
+  async renderTopicPage(req, res) {
+    try {
+      const { topicId } = req.params;
+      const userId = req.session?.user?._id;
+      
+      const topic = await topicModel.getById(topicId);
+      if (!topic) return res.status(404).send('Topic not found');
+      
+      const Post = require('../models/post')();
+      const posts = await Post.getPostsByTopic(topicId);
+      
+      const isSubscribed = userId 
+        ? topic.subscribers.includes(userId)
+        : false;
+      
+      res.render('topic', {
+        topic,
+        posts,
+        isSubscribed,
+        user: req.session.user
+      });
+    } catch (error) {
+      console.error('Error loading topic page:', error);
+      res.status(500).send('Error loading topic page');
+    }
+  }
+  
 }
 
 // Singleton export

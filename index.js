@@ -8,6 +8,7 @@ const connectDB = require('./utils/db'); // ✅ FIX: This was missing
 const userRoutes = require('./routes/userRoutes');
 const topicRoutes = require('./routes/topicRoute');
 const statsRoute = require('./routes/statsRoute');
+const postRoutes = require('./routes/postRoute');
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api/users', userRoutes);
 app.use('/topics', topicRoutes);
 app.use('/', statsRoute);
+app.use('/posts', postRoutes);
 
 // ✅ Default route
 app.get('/', (req, res) => {
