@@ -1,5 +1,6 @@
 const Topic = require('../models/topic');
 const topicModel = Topic();
+const Post = require('../models/post')();
 
 class TopicController {
   constructor() {
@@ -41,13 +42,13 @@ class TopicController {
     try {
       const topics = await topicModel.getAll();
       const userId = req.session?.user?._id;
-  
+
       const subscribedTopics = userId
         ? await topicModel.getSubscribedTopics(userId)
         : [];
-  
+
       const subscribedIds = subscribedTopics.map(t => t._id.toString());
-  
+
       res.render('browseTopics', {
         topics,
         subscribedIds,
@@ -58,7 +59,6 @@ class TopicController {
       res.status(500).send('Failed to load topics');
     }
   }
-  
 
   // ✅ Subscribe to a topic
   async subscribeToTopic(req, res) {
@@ -122,23 +122,30 @@ class TopicController {
       res.status(500).send('Error retrieving subscribed topics');
     }
   }
+
   async renderStatsPage(req, res) {
     try {
       const allTopics = await topicModel.getAll();
-  
-      const stats = allTopics.map(topic => ({
-        name: topic.name,
-        subscribersCount: topic.subscribers?.length || 0
-      }));
-  
-      res.render('stats', { stats }); // Only send subscriber data now
+
+      const stats = await Promise.all(
+        allTopics.map(async (topic) => {
+          const posts = await Post.getPostsByTopic(topic._id);
+          return {
+            name: topic.name,
+            subscribersCount: topic.subscribers?.length || 0,
+            postCount: posts.length
+          };
+        })
+      );
+
+      const maxPostCount = Math.max(...stats.map(s => s.postCount), 0);
+
+      res.render('stats', { stats, maxPostCount });
     } catch (err) {
       console.error('❌ Failed to load topic stats:', err);
       res.status(500).send('Failed to load topic stats');
     }
-  } 
-  
-  
+  }
 
   // ✅ Topic statistics
   async getTopicStats(req, res) {
@@ -159,22 +166,21 @@ class TopicController {
       res.status(500).send('Error retrieving topic stats');
     }
   }
-  
+
   async renderTopicPage(req, res) {
     try {
       const { topicId } = req.params;
       const userId = req.session?.user?._id;
-      
+
       const topic = await topicModel.getById(topicId);
       if (!topic) return res.status(404).send('Topic not found');
-      
-      const Post = require('../models/post')();
+
       const posts = await Post.getPostsByTopic(topicId);
-      
+
       const isSubscribed = userId 
         ? topic.subscribers.includes(userId)
         : false;
-      
+
       res.render('topic', {
         topic,
         posts,
@@ -186,7 +192,6 @@ class TopicController {
       res.status(500).send('Error loading topic page');
     }
   }
-  
 }
 
 // Singleton export
