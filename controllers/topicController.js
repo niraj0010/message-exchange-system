@@ -130,10 +130,40 @@ class TopicController {
       const stats = await Promise.all(
         allTopics.map(async (topic) => {
           const posts = await Post.getPostsByTopic(topic._id);
+          
+          // Calculate top contributor
+          let topContributor = null;
+          if (posts.length > 0) {
+            // Count posts per user
+            const userPostCounts = {};
+            posts.forEach(post => {
+              // Ensure post.author exists and has _id and username
+              if (post.author && post.author._id && post.author.username) {
+                const authorId = post.author._id.toString();
+                userPostCounts[authorId] = (userPostCounts[authorId] || 0) + 1;
+              }
+            });
+
+            // Find the user with the most posts
+            if (Object.keys(userPostCounts).length > 0) {
+              const topUserId = Object.keys(userPostCounts).reduce((a, b) =>
+                userPostCounts[a] > userPostCounts[b] ? a : b
+              );
+              const topUserCount = userPostCounts[topUserId];
+
+              // Since author is populated, get the username directly
+              if (topUserCount > 0) {
+                const topUser = posts.find(post => post.author._id.toString() === topUserId);
+                topContributor = topUser ? topUser.author.username : null;
+              }
+            }
+          }
+
           return {
             name: topic.name,
             subscribersCount: topic.subscribers?.length || 0,
-            postCount: posts.length
+            postCount: posts.length,
+            topContributor: topContributor
           };
         })
       );
