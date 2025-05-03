@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login to X</title>
   <style>
     body {
+      margin: 0;
+      padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #000;
       color: #fff;
@@ -13,53 +16,66 @@
       align-items: center;
       height: 100vh;
     }
+
     .login-container {
       width: 100%;
       max-width: 400px;
       padding: 40px;
-      border: 1px solid #333;
       border-radius: 8px;
       background-color: #121212;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
+
     .login-container h2 {
       text-align: center;
       margin-bottom: 30px;
       color: #1DA1F2;
     }
-    .login-container label {
+
+    label {
       display: block;
-      margin-bottom: 5px;
+      margin-bottom: 6px;
       color: #ccc;
     }
-    .login-container input {
+
+    input[type="text"],
+    input[type="password"] {
       width: 100%;
       padding: 10px;
-      margin-bottom: 15px;
-      border: 1px solid #555;
+      margin-bottom: 20px;
+      border: 1px solid #333;
       border-radius: 4px;
       background-color: #1a1a1a;
       color: #fff;
+      font-size: 14px;
     }
-    .login-container button {
+
+    button {
       width: 100%;
       padding: 10px;
       background-color: #1DA1F2;
-      color: white;
       border: none;
       border-radius: 4px;
+      color: white;
+      font-weight: bold;
       cursor: pointer;
+      font-size: 16px;
     }
-    .login-container button:hover {
+
+    button:hover {
       background-color: #0d8ddb;
     }
+
     .login-container p {
       text-align: center;
       margin-top: 15px;
     }
+
     .login-container a {
       color: #1DA1F2;
       text-decoration: none;
     }
+
     .login-container a:hover {
       text-decoration: underline;
     }
@@ -70,10 +86,10 @@
     <h2>Login to X</h2>
     <form method="POST" action="/api/users/login">
       <label for="username">Username</label>
-      <input type="text" id="username" name="username" placeholder="Enter your username" required>
+      <input type="text" id="username" name="username" required placeholder="Enter your username" />
 
       <label for="password">Password</label>
-      <input type="password" id="password" name="password" placeholder="Enter your password" required>
+      <input type="password" id="password" name="password" required placeholder="Enter your password" />
 
       <button type="submit">Login</button>
     </form>
