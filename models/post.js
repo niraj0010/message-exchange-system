@@ -46,18 +46,18 @@ const postSchema = new mongoose.Schema({
 const PostModel = dbInstance.getModel('Post', postSchema);
 
 class Post {
-    async create(title, content, authorId, topicId) {
-        const post = new PostModel({
-          title,
-          content,
-          author: authorId,
-          topic: topicId
-        });
-        return await post.save();
-      }
+  async create(title, content, authorId, topicId) {
+    const post = new PostModel({
+      title,
+      content,
+      author: authorId,
+      topic: topicId
+    });
+    return await post.save();
+  }
 
-  async getPostsByTopic(topicId) {
-    return await PostModel.find({ topic: topicId })
+  async getPostsByTopic(topicId, dateFilter = {}) {
+    return await PostModel.find({ topic: topicId, ...dateFilter })
       .populate('author', 'username')
       .sort({ createdAt: -1 });
   }

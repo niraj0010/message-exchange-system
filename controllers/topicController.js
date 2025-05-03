@@ -1,5 +1,6 @@
 const Topic = require('../models/topic');
 const topicModel = Topic();
+const Post = require('../models/post')();
 
 class TopicController {
   constructor() {
@@ -41,13 +42,13 @@ class TopicController {
     try {
       const topics = await topicModel.getAll();
       const userId = req.session?.user?._id;
-  
+
       const subscribedTopics = userId
         ? await topicModel.getSubscribedTopics(userId)
         : [];
-  
+
       const subscribedIds = subscribedTopics.map(t => t._id.toString());
-  
+
       res.render('browseTopics', {
         topics,
         subscribedIds,
@@ -58,7 +59,6 @@ class TopicController {
       res.status(500).send('Failed to load topics');
     }
   }
-  
 
   // ✅ Subscribe to a topic
   async subscribeToTopic(req, res) {
@@ -122,23 +122,77 @@ class TopicController {
       res.status(500).send('Error retrieving subscribed topics');
     }
   }
+
   async renderStatsPage(req, res) {
     try {
       const allTopics = await topicModel.getAll();
-  
-      const stats = allTopics.map(topic => ({
-        name: topic.name,
-        subscribersCount: topic.subscribers?.length || 0
-      }));
-  
-      res.render('stats', { stats }); // Only send subscriber data now
+      const timeRange = req.query.timeRange || 'all';
+
+      // Calculate date range for filtering
+      let dateFilter = {};
+      if (timeRange === '7days') {
+        dateFilter = { createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } };
+      } else if (timeRange === '30days') {
+        dateFilter = { createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } };
+      }
+
+      const stats = await Promise.all(
+        allTopics.map(async (topic) => {
+          // Pass dateFilter to getPostsByTopic
+          const posts = await Post.getPostsByTopic(topic._id, dateFilter);
+          
+          // Calculate top contributor and engagement metrics
+          let topContributor = null;
+          let totalUpvotes = 0;
+          let avgUpvotesPerPost = 0;
+
+          if (posts.length > 0) {
+            // Count posts per user for top contributor
+            const userPostCounts = {};
+            posts.forEach(post => {
+              if (post.author && post.author._id && post.author.username) {
+                const authorId = post.author._id.toString();
+                userPostCounts[authorId] = (userPostCounts[authorId] || 0) + 1;
+              }
+              // Sum upvotes for engagement metric
+              totalUpvotes += post.upvotes ? post.upvotes.length : 0;
+            });
+
+            // Find top contributor
+            if (Object.keys(userPostCounts).length > 0) {
+              const topUserId = Object.keys(userPostCounts).reduce((a, b) =>
+                userPostCounts[a] > userPostCounts[b] ? a : b
+              );
+              const topUserCount = userPostCounts[topUserId];
+
+              if (topUserCount > 0) {
+                const topUser = posts.find(post => post.author._id.toString() === topUserId);
+                topContributor = topUser ? topUser.author.username : null;
+              }
+            }
+
+            // Calculate average upvotes per post
+            avgUpvotesPerPost = posts.length > 0 ? (totalUpvotes / posts.length).toFixed(1) : 0;
+          }
+
+          return {
+            name: topic.name,
+            subscribersCount: topic.subscribers?.length || 0,
+            postCount: posts.length,
+            topContributor: topContributor,
+            avgUpvotesPerPost: avgUpvotesPerPost
+          };
+        })
+      );
+
+      const maxPostCount = Math.max(...stats.map(s => s.postCount), 0);
+
+      res.render('stats', { stats, maxPostCount, timeRange });
     } catch (err) {
       console.error('❌ Failed to load topic stats:', err);
       res.status(500).send('Failed to load topic stats');
     }
-  } 
-  
-  
+  }
 
   // ✅ Topic statistics
   async getTopicStats(req, res) {
@@ -159,22 +213,21 @@ class TopicController {
       res.status(500).send('Error retrieving topic stats');
     }
   }
-  
+
   async renderTopicPage(req, res) {
     try {
       const { topicId } = req.params;
       const userId = req.session?.user?._id;
-      
+
       const topic = await topicModel.getById(topicId);
       if (!topic) return res.status(404).send('Topic not found');
-      
-      const Post = require('../models/post')();
+
       const posts = await Post.getPostsByTopic(topicId);
-      
+
       const isSubscribed = userId 
         ? topic.subscribers.includes(userId)
         : false;
-      
+
       res.render('topic', {
         topic,
         posts,
@@ -186,7 +239,6 @@ class TopicController {
       res.status(500).send('Error loading topic page');
     }
   }
-  
 }
 
 // Singleton export
