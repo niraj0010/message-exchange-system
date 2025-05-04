@@ -11,6 +11,9 @@ router.post('/register', userController.registerUser);
 router.get('/login', (req, res) => res.render('login'));
 router.post('/login', userController.loginUser);
 
+// Logout
+router.post('/logout', userController.logoutUser);
+
 // Dashboard
 router.get('/dashboard', userController.getDashboard);
 module.exports = router;

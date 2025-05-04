@@ -73,8 +73,22 @@ exports.getDashboard = async (req, res) => {
       posts
     });
   } catch (err) {
-    console.error('❌ Dashboard load error:', err);
+    console.error(' Dashboard load error:', err);
     res.status(500).send('Error loading dashboard');
   }
 };
 
+// POST /api/users/logout
+exports.logoutUser = (req, res, next) => {
+  // Destroy the session
+  req.session.destroy(err => {
+    if (err) {
+      console.error(' Logout error:', err);
+      return next(err);
+    }
+    // Clear the session cookie
+    res.clearCookie('connect.sid');
+    // Redirect back to the login page
+    res.redirect('/api/users/login');
+  });
+};
