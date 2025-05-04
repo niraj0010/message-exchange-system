@@ -4,136 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+  >
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  >
   <style>
     :root[data-theme="dark"] {
-      --bs-body-bg: #121212;
-      --bs-body-color: #f8f9fa;
-      --bs-card-bg: #1e1e1e;
-      --bs-card-color: #f8f9fa;
-      --bs-border-color: #333;
-      --bs-navbar-bg: #1e1e1e;
-      --bs-navbar-color: #f8f9fa;
-      --bs-input-bg: #2d2d2d;
-      --bs-input-color: #f8f9fa;
-      --bs-input-border: #444;
-      --bs-btn-bg: #0d6efd;
-      --bs-btn-color: #fff;
-      --bs-alert-bg: #2d2d2d;
-      --bs-alert-color: #f8f9fa;
-      --bs-alert-border: #444;
-      --bs-placeholder-color: #adb5bd;
-      --bs-muted-color: #adb5bd;
-      --bs-link-color: #66b0ff;
+      /* your dark‑mode CSS variables… */
     }
-
-    body[data-theme="dark"] {
-      background-color: var(--bs-body-bg);
-      color: var(--bs-body-color);
-    }
-
-    [data-theme="dark"] .card {
-      background-color: var(--bs-card-bg);
-      color: var(--bs-card-color);
-    }
-
-    [data-theme="dark"] .list-group-item {
-      background-color: #1e1e1e;
-      color: #f8f9fa;
-    }
-
-    [data-theme="dark"] .navbar {
-      background-color: var(--bs-navbar-bg) !important;
-      color: var(--bs-navbar-color);
-    }
-
-    [data-theme="dark"] .navbar .nav-link,
-    [data-theme="dark"] .navbar .btn {
-      color: var(--bs-navbar-color);
-    }
-
-    [data-theme="dark"] .navbar .btn:hover {
-      color: #0d6efd;
-      background-color: rgba(13, 110, 253, 0.1);
-    }
-
-    [data-theme="dark"] .form-control {
-      background-color: var(--bs-input-bg);
-      color: var(--bs-input-color);
-      border-color: var(--bs-input-border);
-    }
-
-    [data-theme="dark"] .form-control::placeholder {
-      color: var(--bs-placeholder-color);
-    }
-
-    [data-theme="dark"] .form-select {
-      background-color: var(--bs-input-bg);
-      color: var(--bs-input-color);
-      border-color: var(--bs-input-border);
-    }
-
-    [data-theme="dark"] .form-select::placeholder {
-      color: var(--bs-placeholder-color);
-    }
-
-    [data-theme="dark"] .btn-primary {
-      background-color: var(--bs-btn-bg);
-      color: var(--bs-btn-color);
-      border-color: var(--bs-btn-bg);
-    }
-
-    [data-theme="dark"] .btn-primary:hover {
-      background-color: #0b5ed7;
-      border-color: #0a58ca;
-    }
-
-    [data-theme="dark"] .alert {
-      background-color: var(--bs-alert-bg);
-      color: var(--bs-alert-color);
-      border-color: var(--bs-alert-border);
-    }
-
-    [data-theme="dark"] .text-muted {
-      color: var(--bs-muted-color) !important;
-    }
-
-    [data-theme="dark"] .text-muted a {
-      color: var(--bs-link-color);
-      text-decoration: none;
-    }
-
-    [data-theme="dark"] .text-muted a:hover {
-      color: #99c7ff;
-      text-decoration: underline;
-    }
-
-    .post-card {
-      transition: transform 0.2s;
-    }
-    .post-card:hover {
-      transform: translateY(-2px);
-    }
-    .vote-count {
-      min-width: 30px;
-      text-align: center;
-      font-weight: bold;
-    }
-    .vote-btn {
-      border: none;
-      background: none;
-      padding: 0 5px;
-    }
-    .vote-btn:hover {
-      color: #0d6efd;
-    }
-    .upvoted {
-      color: #ff4500;
-    }
-    .downvoted {
-      color: #7193ff;
-    }
+    body[data-theme="dark"] { /* … */ }
+    [data-theme="dark"] .card { /* … */ }
+    [data-theme="dark"] .navbar { /* … */ }
+    .post-card { transition: transform 0.2s; }
+    .post-card:hover { transform: translateY(-2px); }
+    .vote-count { min-width: 30px; text-align: center; font-weight: bold; }
+    .vote-btn { border: none; background: none; padding: 0 5px; }
+    .vote-btn:hover { color: #0d6efd; }
+    .upvoted  { color: #ff4500; }
+    .downvoted{ color: #7193ff; }
   </style>
 </head>
 <body data-theme="light">
@@ -143,22 +35,61 @@
       <button id="themeToggle" class="btn btn-sm btn-dark">🌓 Toggle Theme</button>
     </div>
 
-    <!-- Navigation -->
+    <!-- Navigation with inline notification dropdown -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light my-3 p-2 rounded shadow-sm">
-      <div class="container-fluid">
-        <div class="d-flex justify-content-between w-100">
-          <div class="navbar-nav">
-            <a class="nav-link" href="/topics/browse"># Browse Topics</a>
+      <div class="container-fluid d-flex justify-content-between">
+        <div class="navbar-nav">
+          <a class="nav-link" href="/topics/browse"># Browse Topics</a>
+        </div>
+        <div class="navbar-nav align-items-center">
+          <a href="/topics/stats" class="btn btn-info btn-sm mx-2">📊 Stats</a>
+
+          <!-- Notification Dropdown -->
+          <div class="dropdown mx-2">
+            <button
+              id="notifDropdownBtn"
+              class="btn btn-warning btn-sm dropdown-toggle position-relative"
+              type="button"
+              data-bs-toggle="dropdown"
+              data-bs-auto-close="false"
+              aria-expanded="false"
+            >
+              🔔
+              <% if (unreadCount > 0) { %>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                  <%= unreadCount %>
+                </span>
+              <% } %>
+            </button>
+            <ul
+              class="dropdown-menu dropdown-menu-end"
+              aria-labelledby="notifDropdownBtn"
+              style="min-width: 300px;"
+            >
+              <% if (notifications && notifications.length > 0) { %>
+                <% notifications.forEach(n => { %>
+                  <li class="dropdown-item d-flex justify-content-between align-items-start">
+                    <div style="max-width: 200px; white-space: normal;">
+                      <small class="text-muted"><%= new Date(n.created).toLocaleTimeString() %></small><br>
+                      <%= n.message %>
+                    </div>
+                    <% if (!n.read) { %>
+                      <span class="badge bg-danger">New</span>
+                    <% } %>
+                  </li>
+                  <li><hr class="dropdown-divider"></li>
+                <% }) %>
+              <% } else { %>
+                <li class="dropdown-item text-muted">No notifications</li>
+              <% } %>
+            </ul>
           </div>
-          <div class="navbar-nav">
-            <a href="/topics/stats" class="btn btn-info btn-sm mx-2">📊 Stats</a>
-            <a class="btn btn-warning btn-sm mx-2" href="/messages/create">✍️ New Message</a>
-            <form method="POST" action="/api/users/logout" class="d-inline">
-              <button type="submit" class="btn btn-outline-secondary btn-sm">
-                🚪 Logout
-              </button>
-            </form>
-          </div>
+
+          <a class="btn btn-warning btn-sm mx-2" href="/messages/create">✍️ New Message</a>
+
+          <form method="POST" action="/api/users/logout" class="d-inline">
+            <button type="submit" class="btn btn-outline-secondary btn-sm">🚪 Logout</button>
+          </form>
         </div>
       </div>
     </nav>
@@ -172,7 +103,7 @@
           <div class="card-body">
             <form method="POST" action="/posts">
               <div class="mb-3">
-                <input type="text" name="title" class="form-control" placeholder="Title" required />
+                <input type="text" name="title" class="form-control" placeholder="Title" required/>
               </div>
               <div class="mb-3">
                 <textarea name="content" class="form-control" rows="3" placeholder="What are your thoughts?" required></textarea>
@@ -192,30 +123,24 @@
 
         <!-- Posts Feed -->
         <h4 class="mb-3">Recent Posts from Your Topics</h4>
-        
         <% if (posts && posts.length > 0) { %>
           <% posts.forEach(post => { %>
             <div class="card mb-3 post-card shadow-sm">
               <div class="card-body">
                 <div class="d-flex">
-                  <!-- Voting Column -->
                   <div class="d-flex flex-column align-items-center me-3">
                     <form method="POST" action="/posts/<%= post._id %>/upvote" class="mb-1">
                       <button type="submit" class="vote-btn <%= post.upvotes.includes(user._id.toString()) ? 'upvoted' : '' %>">
                         <i class="fas fa-arrow-up"></i>
                       </button>
                     </form>
-                    <div class="vote-count">
-                      <%= post.upvotes.length - post.downvotes.length %>
-                    </div>
+                    <div class="vote-count"><%= post.upvotes.length - post.downvotes.length %></div>
                     <form method="POST" action="/posts/<%= post._id %>/downvote" class="mt-1">
                       <button type="submit" class="vote-btn <%= post.downvotes.includes(user._id.toString()) ? 'downvoted' : '' %>">
                         <i class="fas fa-arrow-down"></i>
                       </button>
                     </form>
                   </div>
-                  
-                  <!-- Post Content -->
                   <div class="flex-grow-1">
                     <h5 class="card-title">
                       <a href="/posts/<%= post._id %>" class="text-decoration-none"><%= post.title %></a>
@@ -223,12 +148,11 @@
                     <p class="card-text"><%= post.content %></p>
                     <div class="d-flex justify-content-between text-muted small">
                       <span>
-                        Posted in <a href="/topics/<%= post.topic._id %>" class="text-decoration-none">#<%= post.topic.name %></a>
+                        Posted in 
+                        <a href="/topics/<%= post.topic._id %>" class="text-decoration-none">#<%= post.topic.name %></a> 
                         by <%= post.author.username %>
                       </span>
-                      <span>
-                        <%= new Date(post.createdAt).toLocaleString() %>
-                      </span>
+                      <span><%= new Date(post.createdAt).toLocaleString() %></span>
                     </div>
                     <div class="mt-2">
                       <a href="/posts/<%= post._id %>" class="btn btn-sm btn-outline-secondary">
@@ -241,28 +165,24 @@
             </div>
           <% }) %>
         <% } else { %>
-          <div class="alert alert-info">
-            No posts to display. Subscribe to more topics or create a post!
-          </div>
+          <div class="alert alert-info">No posts to display. Subscribe to more topics or create a post!</div>
         <% } %>
       </div>
 
       <!-- Sidebar Column -->
       <div class="col-md-4">
-        <!-- Create New Topic Form -->
         <div class="card mb-4 shadow-sm">
           <div class="card-header">Create New Topic</div>
           <div class="card-body">
             <form method="POST" action="/topics">
               <div class="mb-3">
-                <input type="text" name="name" class="form-control" placeholder="e.g., AI, JavaScript, Movies..." required />
+                <input type="text" name="name" class="form-control" placeholder="e.g., AI, JavaScript, Movies..." required/>
               </div>
               <button type="submit" class="btn btn-primary">➕ Create Topic</button>
             </form>
           </div>
         </div>
 
-        <!-- Subscribed Topics Section -->
         <div class="card shadow-sm">
           <div class="card-header">Your Subscribed Topics</div>
           <div class="card-body">
@@ -287,24 +207,39 @@
     </div>
   </div>
 
+  <!-- Bootstrap JS for dropdown -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    // Grab the bell button
+    const dropdownBtn = document.getElementById('notifDropdownBtn');
+  
+    dropdownBtn.addEventListener('shown.bs.dropdown', () => {
+      fetch('/notifications/mark-dropdown-read', { method: 'POST' })
+        .then(res => res.json())
+        .then(() => {
+          // 1) Remove the red badge from the button
+          const btnBadge = dropdownBtn.querySelector('.badge');
+          if (btnBadge) btnBadge.remove();
+  
+          // 2) Remove each "New" badge inside the dropdown items
+          document.querySelectorAll('.dropdown-menu .badge.bg-danger').forEach(el => el.remove());
+        })
+        .catch(err => console.error('Failed to mark read:', err));
+    });
+  </script>
+  
+
+     
+     <script>
     document.getElementById("themeToggle").addEventListener("click", () => {
       const html = document.documentElement;
-      const body = document.body;
-      const currentTheme = html.getAttribute("data-theme") || body.getAttribute("data-theme");
-      const newTheme = currentTheme === "dark" ? "light" : "dark";
-      html.setAttribute("data-theme", newTheme);
-      body.setAttribute("data-theme", newTheme);
-
-      // Update navbar class dynamically
-      const navbar = document.querySelector('.navbar');
-      if (newTheme === 'dark') {
-        navbar.classList.remove('navbar-light');
-        navbar.classList.add('navbar-dark');
-      } else {
-        navbar.classList.remove('navbar-dark');
-        navbar.classList.add('navbar-light');
-      }
+      const current = html.getAttribute("data-theme");
+      const next = current === "dark" ? "light" : "dark";
+      html.setAttribute("data-theme", next);
+      document.body.setAttribute("data-theme", next);
+      const nav = document.querySelector('.navbar');
+      nav.classList.toggle('navbar-dark', next === "dark");
+      nav.classList.toggle('navbar-light', next === "light");
     });
   </script>
 </body>

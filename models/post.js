@@ -1,6 +1,9 @@
-const mongoose = require('mongoose');
+// controllers/postController.js  (or models/post.js if you keep it there)
+const mongoose   = require('mongoose');
 const dbInstance = require('../utils/db')();
+const eventBus   = require('../observers/eventBus');  // <-- Observer bus
 
+// Post schema
 const postSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -46,6 +49,7 @@ const postSchema = new mongoose.Schema({
 const PostModel = dbInstance.getModel('Post', postSchema);
 
 class Post {
+  // Create a new post AND emit an update event
   async create(title, content, authorId, topicId) {
     const post = new PostModel({
       title,
@@ -53,7 +57,16 @@ class Post {
       author: authorId,
       topic: topicId
     });
-    return await post.save();
+    const saved = await post.save();
+
+    // Notify observers that this topic got a new post
+    eventBus.emit('topic:updated', {
+      topicId:   saved.topic.toString(),
+      postId:    saved._id.toString(),
+      postTitle: saved.title
+    });
+
+    return saved;
   }
 
   async getPostsByTopic(topicId, dateFilter = {}) {
@@ -63,11 +76,10 @@ class Post {
   }
 
   async getPostsForUserSubscriptions(userId, limit = 20) {
-    // Get user's subscribed topics first
     const Topic = require('./topic')();
     const subscribedTopics = await Topic.getSubscribedTopics(userId);
     const topicIds = subscribedTopics.map(t => t._id);
-    
+
     return await PostModel.find({ topic: { $in: topicIds } })
       .populate('author', 'username')
       .populate('topic', 'name')
@@ -78,10 +90,10 @@ class Post {
   async upvote(postId, userId) {
     return await PostModel.findByIdAndUpdate(
       postId,
-      { 
+      {
         $addToSet: { upvotes: userId },
-        $pull: { downvotes: userId },
-        $set: { updatedAt: new Date() }
+        $pull:     { downvotes: userId },
+        $set:      { updatedAt: new Date() }
       },
       { new: true }
     );
@@ -90,16 +102,17 @@ class Post {
   async downvote(postId, userId) {
     return await PostModel.findByIdAndUpdate(
       postId,
-      { 
+      {
         $addToSet: { downvotes: userId },
-        $pull: { upvotes: userId },
-        $set: { updatedAt: new Date() }
+        $pull:     { upvotes: userId },
+        $set:      { updatedAt: new Date() }
       },
       { new: true }
     );
   }
 }
 
+// Singleton export
 let postInstance = null;
 module.exports = () => {
   if (!postInstance) {

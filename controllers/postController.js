@@ -1,122 +1,114 @@
-const Post = require('../models/post');
-const postModel = Post();
+// controllers/postController.js
+
+const postModel = require('../models/post')();
+const eventBus  = require('../observers/eventBus');
 
 class PostController {
-  constructor() {
-    this.observers = [];
-  }
-
-  addObserver(observer) {
-    this.observers.push(observer);
-  }
-
-  removeObserver(observer) {
-    this.observers = this.observers.filter(obs => obs !== observer);
-  }
-
-  notifyObservers(event, data) {
-    this.observers.forEach(observer => observer.update(event, data));
-  }
-
   // Create a new post
   async createPost(req, res) {
     try {
       const { title, content, topicId } = req.body;
-      const authorId = req.session?.user?._id;
 
-      if (!title || !content || !topicId || !authorId) {
-        return res.status(400).json({ error: 'All fields are required' });
+      // Ensure user is logged in
+      const sessionUser = req.session.user;
+      if (!sessionUser) {
+        return res.status(401).send('You must be logged in to post');
       }
 
-      const post = await postModel.create(title, content, authorId, topicId);
-      this.notifyObservers('POST_CREATED', post);
-      
-      // Redirect to the topic page or home
-      res.redirect('/api/users/dashboard'); 
+      const authorId   = sessionUser._id.toString();
+      const authorName = sessionUser.username;
+
+      if (!title || !content || !topicId) {
+        return res.status(400).send('All fields are required');
+      }
+
+      // Save the post
+      const saved = await postModel.create(title, content, authorId, topicId);
+
+      // Emit the notification event with exact keys
+      eventBus.emit('topic:updated', {
+        topicId,
+        postTitle: saved.title,
+        author:    authorName,
+        authorId
+      });
+
+      // Redirect back to the dashboard
+      res.redirect('/api/users/dashboard');
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      console.error(' createPost error:', error);
+      res.status(500).send('Error creating post');
     }
   }
 
-  // Get posts for a specific topic
+  // JSON endpoint: get posts by topic
   async getPostsByTopic(req, res) {
     try {
       const { topicId } = req.params;
       const posts = await postModel.getPostsByTopic(topicId);
       res.json(posts);
     } catch (error) {
+      console.error(' getPostsByTopic error:', error);
       res.status(500).send('Error retrieving posts');
     }
   }
+
+  // Render the page to create a new post
   async renderCreatePostPage(req, res) {
     const { topicId } = req.params;
-    const user = req.session?.user;
-  
-    if (!user?._id) {
-      return res.redirect('/login');
+    const user = req.session.user;
+    if (!user) {
+      return res.redirect('/api/users/login');
     }
-  
-    res.render('create-post', {
-      topicId,
-      user
-    });
+    res.render('create-post', { topicId, user });
   }
-  
 
-  // Render home page with posts from subscribed topics
+  // Render the dashboard/home page with subscribed posts
   async renderHomePage(req, res) {
     try {
-      const userId = req.session?.user?._id;
-      if (!userId) return res.redirect('/login');
-
-      const posts = await postModel.getPostsForUserSubscriptions(userId);
-      
-      res.render('home', {
-        posts,
-        user: req.session.user
-      });
+      const user = req.session.user;
+      if (!user) {
+        return res.redirect('/api/users/login');
+      }
+      const posts = await postModel.getPostsForUserSubscriptions(user._id);
+      res.render('dashboard', { posts, user });
     } catch (error) {
-      console.error('Error loading home page:', error);
+      console.error(' renderHomePage error:', error);
       res.status(500).send('Error loading home page');
     }
   }
 
   // Upvote a post
-async upvotePost(req, res) {
+  async upvotePost(req, res) {
     try {
       const { postId } = req.params;
-      const userId = req.session?.user?._id;
-      
-      if (!userId) return res.status(401).send('Unauthorized');
-      
-      await postModel.upvote(postId, userId);
-      res.redirect('/api/users/dashboard'); // 👈 redirect instead of res.json
+      const user = req.session.user;
+      if (!user) {
+        return res.status(401).send('Unauthorized');
+      }
+      await postModel.upvote(postId, user._id);
+      res.redirect('/api/users/dashboard');
     } catch (error) {
+      console.error(' upvotePost error:', error);
       res.status(500).send('Error upvoting post');
     }
   }
-  
+
   // Downvote a post
   async downvotePost(req, res) {
     try {
       const { postId } = req.params;
-      const userId = req.session?.user?._id;
-      
-      if (!userId) return res.status(401).send('Unauthorized');
-      
-      await postModel.downvote(postId, userId);
-      res.redirect('/api/users/dashboard'); // 👈 same here
+      const user = req.session.user;
+      if (!user) {
+        return res.status(401).send('Unauthorized');
+      }
+      await postModel.downvote(postId, user._id);
+      res.redirect('/api/users/dashboard');
     } catch (error) {
+      console.error(' downvotePost error:', error);
       res.status(500).send('Error downvoting post');
     }
   }
-  
 }
 
-let postControllerInstance = null;
-module.exports = () => {
-  if (!postControllerInstance) {
-    postControllerInstance = new PostController();
-  }
-  return postControllerInstance;
-};
+module.exports = () => new PostController();
