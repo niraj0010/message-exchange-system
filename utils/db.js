@@ -15,7 +15,7 @@ class DB {
         socketTimeoutMS: 45000,
       });
 
-      console.log('✅ MongoDB connected');
+      console.log(' MongoDB connected');
 
       mongoose.connection.on('disconnected', () => {
         console.warn('⚠️ MongoDB disconnected. Attempting to reconnect...');

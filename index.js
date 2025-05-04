@@ -1,56 +1,50 @@
 require('dotenv').config();
-const express = require('express');
-const session = require('express-session');
-const path = require('path');
-const open = require('open'); // ✅ to auto-open browser
-const connectDB = require('./utils/db'); // ✅ FIX: This was missing
+require('./observers/notificationObserver');  // wire up notifications
+
+const express   = require('express');
+const session   = require('express-session');
+const path      = require('path');
+const open      = require('open');
+const connectDB = require('./utils/db');
 
 const userRoutes = require('./routes/userRoutes');
 const topicRoutes = require('./routes/topicRoute');
-const statsRoute = require('./routes/statsRoute');
 const postRoutes = require('./routes/postRoute');
+const statsRoute = require('./routes/statsRoute');
 
 const app = express();
 
-// ✅ Middleware
+// ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// ✅ Session middleware
 app.use(session({
-  secret: 'keyboard-cat', // 🔐 you can replace this with process.env.SESSION_SECRET for production
+  secret: process.env.SESSION_SECRET || 'keyboard-cat',
   resave: false,
   saveUninitialized: true
 }));
 
-// ✅ View engine
+// ─── Views & Static ────────────────────────────────────────────────────────────
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-
-// ✅ Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ✅ Routes
-app.use('/api/users', userRoutes);
-app.use('/topics', topicRoutes);
-app.use('/', statsRoute);
-app.use('/posts', postRoutes);
+// ─── Routes ───────────────────────────────────────────────────────────────────
+app.use('/api/users',    userRoutes);
+app.use('/topics',       topicRoutes);
+app.use('/posts',        postRoutes);
+app.use('/notifications', require('./routes/notificationRoute'));
+app.use('/',             statsRoute);
 
-// ✅ Default route
-app.get('/', (req, res) => {
-  res.redirect('/api/users/login');
-});
+// ─── Default Redirect ─────────────────────────────────────────────────────────
+app.get('/', (req, res) => res.redirect('/api/users/login'));
 
-// ✅ Start server
+// ─── Start Server ─────────────────────────────────────────────────────────────
 (async () => {
   try {
-    const connectDB = require('./utils/db');
     const db = connectDB();
-    
-    await db.connect(); // ✅ Correct
-    
-    const PORT = process.env.PORT || 3000;
+    await db.connect();
 
+    const PORT = process.env.PORT || 3000;
     app.listen(PORT, async () => {
       console.log(`✅ Server running on http://localhost:${PORT}`);
       await open(`http://localhost:${PORT}`);
