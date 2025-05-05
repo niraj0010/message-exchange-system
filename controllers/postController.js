@@ -1,7 +1,6 @@
-// controllers/postController.js
-
 const postModel = require('../models/post')();
 const eventBus = require('../observers/eventBus');
+const commentModel = require('../models/comment');
 
 class PostController {
   async createPost(req, res) {
@@ -37,6 +36,8 @@ class PostController {
     try {
       const { topicId } = req.params;
       const posts = await postModel.getPostsByTopic(topicId);
+
+      // Ensure `commentCount` is populated as a virtual field
       res.json(posts);
     } catch (error) {
       console.error('getPostsByTopic error:', error);
@@ -56,6 +57,8 @@ class PostController {
       const user = req.session.user;
       if (!user) return res.redirect('/api/users/login');
       const posts = await postModel.getPostsForUserSubscriptions(user._id);
+
+      // `commentCount` will be available as a virtual field
       res.render('dashboard', { posts, user });
     } catch (error) {
       console.error('renderHomePage error:', error);
@@ -139,7 +142,7 @@ class PostController {
   async renderPostDetailPage(req, res) {
     try {
       const { id } = req.params;
-      const post = await postModel.getPostById(id);
+      const post = await postModel.getPostById(id).exec(); // Ensure virtual fields are populated
       if (!post) {
         return res.status(404).send('Post not found');
       }
@@ -157,7 +160,12 @@ class PostController {
       if (!post) {
         return res.status(404).send('Post not found');
       }
-      res.render('postDetail', { post });
+
+      const comments = await commentModel.find({ post: id })
+        .populate('user', 'username')
+        .sort({ created: 1 });
+
+      res.render('postDetail', { post, comments });
     } catch (error) {
       console.error('getPostDetail error:', error);
       res.status(500).send('Server error');

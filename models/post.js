@@ -46,6 +46,11 @@ const postSchema = new mongoose.Schema({
   }
 });
 
+// Add a virtual field for comment count
+postSchema.virtual('commentCount').get(function() {
+  return this.comments.length;
+});
+
 const PostModel = dbInstance.getModel('Post', postSchema);
 
 class Post {

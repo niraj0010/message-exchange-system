@@ -1,5 +1,4 @@
 const Comment = require('../models/comment');
-//const Post = require('../models/post');
 const Post = require('../models/post').model; 
 const Topic = require('../models/topic');
 
@@ -24,8 +23,11 @@ exports.createComment = async (req, res) => {
     });
 
     await comment.save();
+    await comment.populate('user', 'username'); // ✅ Populate user before sending to frontend
+
     res.status(200).json({ message: 'Comment added', comment });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Failed to add comment' });
   }
 };

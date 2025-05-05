@@ -37,10 +37,10 @@
 
     <!-- Comments List -->
     <div class="card mt-3">
-      <div class="card-header">Comments (<%= post.comments.length %>)</div>
+      <div class="card-header">Comments (<%= comments.length %>)</div>
       <div class="card-body" id="commentList">
-        <% if (post.comments.length > 0) { %>
-          <% post.comments.forEach(comment => { %>
+        <% if (comments.length > 0) { %>
+          <% comments.forEach(comment => { %>
             <p>
               <strong><%= comment.user.username %></strong>
               <small class="text-muted">(<%= new Date(comment.created).toLocaleString() %>)</small>: 
@@ -71,11 +71,17 @@
       const data = await res.json();
 
       if (res.ok) {
+        // Add the new comment dynamically
         const commentList = document.getElementById('commentList');
         const newComment = document.createElement('p');
         newComment.innerHTML = `<strong>${data.comment.user.username || 'You'}</strong> <small class="text-muted">(${new Date(data.comment.created).toLocaleString()})</small>: ${data.comment.content}`;
         commentList.appendChild(newComment);
+
+        // Clear the textarea and update comment count
         document.getElementById('commentContent').value = '';
+        const commentCount = document.querySelector('.card-header');
+        const currentCount = parseInt(commentCount.textContent.match(/\d+/)[0]);
+        commentCount.textContent = `Comments (${currentCount + 1})`;
       } else {
         alert(data.error || 'Failed to add comment');
       }
