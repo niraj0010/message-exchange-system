@@ -13,12 +13,8 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
   >
   <style>
-    :root[data-theme="dark"] {
-      /* your dark‑mode CSS variables… */
-    }
-    body[data-theme="dark"] { /* … */ }
-    [data-theme="dark"] .card { /* … */ }
-    [data-theme="dark"] .navbar { /* … */ }
+    
+    
     .post-card { transition: transform 0.2s; }
     .post-card:hover { transform: translateY(-2px); }
     .vote-count { min-width: 30px; text-align: center; font-weight: bold; }
@@ -164,9 +160,10 @@
                     </div>
                     <div class="mt-2">
                       <a href="/posts/<%= post._id %>" class="btn btn-sm btn-outline-secondary">
-                        <i class="far fa-comment"></i> <%= post.comments.length %> comments
+                        <i class="far fa-comment"></i> <%= post.comments.length %> comment<%= post.comments.length !== 1 ? 's' : '' %>
                       </a>
                     </div>
+                    
                   </div>
                 </div>
               </div>
@@ -175,7 +172,7 @@
         <% } else { %>
           <div class="alert alert-info">No posts to display. Subscribe to more topics or create a post!</div>
         <% } %>
-      </div>
+      </div>  
 
       <!-- Sidebar Column -->
       <div class="col-md-4">

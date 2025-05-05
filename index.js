@@ -7,10 +7,11 @@ const path      = require('path');
 const open      = require('open');
 const connectDB = require('./utils/db');
 
-const userRoutes = require('./routes/userRoutes');
-const topicRoutes = require('./routes/topicRoute');
-const postRoutes = require('./routes/postRoute');
-const statsRoute = require('./routes/statsRoute');
+const userRoutes    = require('./routes/userRoutes');
+const topicRoutes   = require('./routes/topicRoute');
+const postRoutes    = require('./routes/postRoute');
+const statsRoute    = require('./routes/statsRoute');
+const commentRoutes = require('./routes/commentRoute'); // 👈 Add this line
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use('/api/users',    userRoutes);
 app.use('/topics',       topicRoutes);
 app.use('/posts',        postRoutes);
 app.use('/notifications', require('./routes/notificationRoute'));
+app.use('/api/comments', commentRoutes); // 👈 Register the route here
 app.use('/',             statsRoute);
 
 // ─── Default Redirect ─────────────────────────────────────────────────────────
