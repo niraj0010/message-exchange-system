@@ -109,6 +109,21 @@ class PostController {
       res.status(500).send('Error downvoting post');
     }
   }
+  async deletePost(req, res) {
+    try {
+      const { postId } = req.params;
+      const user = req.session.user;
+      if (!user) {
+        return res.status(401).send('Unauthorized');
+      }
+  
+      await postModel.delete(postId, user._id);
+      res.redirect('/api/users/dashboard');
+    } catch (error) {
+      console.error('deletePost error:', error);
+      res.status(500).send('Error deleting post');
+    }
+  }
 }
 
 module.exports = () => new PostController();

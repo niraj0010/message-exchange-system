@@ -9,6 +9,7 @@ router.post('/', postController.createPost.bind(postController));
 router.get('/create', postController.renderCreatePostPage.bind(postController));
 router.post('/:postId/upvote', postController.upvotePost.bind(postController));
 router.post('/:postId/downvote', postController.downvotePost.bind(postController));
+router.post('/:postId/delete', postController.deletePost);
 
 
 module.exports = router;

@@ -110,6 +110,13 @@ class Post {
       { new: true }
     );
   }
+  async delete(postId, userId) {
+    const post = await PostModel.findOne({ _id: postId, author: userId });
+    if (!post) {
+      throw new Error('Post not found or unauthorized');
+    }
+    return await PostModel.deleteOne({ _id: postId });
+  }
 }
 
 // Singleton export
