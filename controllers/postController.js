@@ -158,21 +158,40 @@ class PostController {
   async getPostDetail(req, res) {
     try {
       const { id } = req.params;
-      const post = await postModel.getPostById(id); // ✅ FIXED: use postModel, not Post
+      const user = req.session.user || req.user;
+      
+      if (!user) {
+        return res.redirect('/login');
+      }
+  
+      // Get post with populated data
+      const post = await postModel.getPostById(id)
+        .exec(); 
+  
       if (!post) {
         return res.status(404).send('Post not found');
       }
-
+  
+      // Get comments with populated user data
       const comments = await commentModel.find({ post: id })
         .populate('user', 'username')
-        .sort({ created: 1 });
-
-      res.render('postDetail', { post, comments });
+        .sort({ createdAt: 1 });
+  
+      res.render('postDetail', {
+        post,
+        comments,
+        user
+      });
+      
     } catch (error) {
       console.error('getPostDetail error:', error);
-      res.status(500).send('Server error');
+      res.status(500).render('error', {
+        message: 'Failed to load post',
+        error: process.env.NODE_ENV === 'development' ? error : {}
+      });
     }
   }
 }
+
 
 module.exports = () => new PostController();

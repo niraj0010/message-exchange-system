@@ -45,3 +45,35 @@ exports.getComments = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch comments' });
   }
 };
+
+// Delete a comment
+exports.deleteComment = async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const userId = req.user?._id || req.session.user?._id;
+
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const comment = await Comment.findById(commentId);
+    if (!comment) return res.status(404).json({ error: 'Comment not found' });
+
+    if (!comment.user.equals(userId)) {
+      return res.status(403).json({ error: 'You are not authorized to delete this comment' });
+    }
+
+    await comment.deleteOne();
+
+    if (req.accepts('json')) {
+      return res.json({ success: true });
+    }
+
+    res.redirect('back');
+  } catch (err) {
+    if (req.accepts('json')) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    req.flash('error', err.message);
+    res.redirect('back');
+  }
+};

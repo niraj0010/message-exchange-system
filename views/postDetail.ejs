@@ -46,6 +46,14 @@
               <small class="text-muted">(<%= new Date(comment.created).toLocaleString() %>)</small>: 
               <%= comment.content %>
             </p>
+            <% if (user && comment.user._id.toString() === user._id.toString()) { %>
+              <form method="POST" action="/comments/<%= comment._id %>?_method=DELETE">
+                <button type="submit" class="btn btn-sm btn-outline-danger"
+                        onclick="return confirm('Delete this comment?')">
+                  Delete
+                </button>
+              </form>
+            <% } %>
           <% }) %>
         <% } else { %>
           <p class="text-muted">No comments yet. Be the first to comment!</p>

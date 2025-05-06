@@ -121,8 +121,8 @@ class Post {
     return await PostModel.deleteOne({ _id: postId });
   }
 
-  async getPostById(postId) {
-    return await PostModel.findById(postId)
+   getPostById(postId) {
+    return  PostModel.findById(postId)
       .populate('author', 'username')
       .populate('topic', 'name');
   }

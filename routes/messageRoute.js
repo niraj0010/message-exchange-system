@@ -7,5 +7,6 @@ router.post('/:topicId', messageController.postMessage);
 
 // Get recent messages from all subscribed topics (for dashboard)
 router.get('/recent', messageController.getRecentMessagesForUser);
+router.delete('/:messageId', messageController.deleteMessage);
 
 module.exports = router;

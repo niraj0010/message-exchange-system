@@ -42,6 +42,19 @@ class Message {
       .sort({ createdAt: -1 })
       .populate('sender', 'username');
   }
+  
+  async delete(messageId, userId) {
+    const message = await MessageModel.findOneAndDelete({ 
+      _id: messageId, 
+      sender: userId 
+    });
+    
+    if (!message) {
+      throw new Error('Message not found or unauthorized');
+    }
+    
+    return message;
+  }
 }
 
 // Singleton
