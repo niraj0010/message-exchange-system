@@ -32,22 +32,43 @@
       font-weight: 500;
     }
 
-    .meta {
-      font-size: 0.85rem;
-      color: #ccc;
-    }
-
-    .meta a {
-      color: #00bfff;
-    }
-
-    .meta a:hover {
-      text-decoration: underline;
-    }
-
     .post-text {
       font-size: 1rem;
       color: #ddd;
+    }
+
+    .time {
+      font-size: 0.85rem;
+      color: #bbb;
+    }
+
+    .vote-btn {
+      background: none;
+      border: none;
+      padding: 0 6px;
+      color: #bbb;
+      font-size: 1rem;
+    }
+
+    .vote-btn:hover {
+      color: #0d6efd;
+    }
+
+    .upvoted {
+      color: #ff4500 !important;
+    }
+
+    .downvoted {
+      color: #7193ff !important;
+    }
+
+    .vote-count {
+      font-size: 1rem;
+      color: #ffffff;
+      font-weight: bold;
+      padding: 0 8px;
+      min-width: 24px;
+      text-align: center;
     }
 
     .btn-view {
@@ -55,14 +76,14 @@
       padding: 4px 10px;
     }
 
+    .topic-label {
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+
     .badge-comment {
       font-size: 0.8rem;
       background-color: #6c757d;
-    }
-
-    .time {
-      font-size: 0.85rem;
-      color: #bbb;
     }
   </style>
 </head>
@@ -92,22 +113,31 @@
             <p class="post-text"><%= post.content %></p>
 
             <div class="d-flex justify-content-between align-items-center mt-3">
-              <div class="meta">
+              <div class="topic-label">
                 <i class="fas fa-hashtag"></i>
-                <% if (post.topic) { %>
-                  <a href="/topics/<%= post.topic._id %>">#<%= post.topic.name %></a>
-                <% } else { %>
-                  <span class="text-muted">[Topic unavailable]</span>
-                <% } %>              </div>
+                <%= post.topic ? post.topic.name : '[No topic]' %>
+              </div>
               <div class="time">
                 <i class="far fa-clock"></i> <%= new Date(post.createdAt).toLocaleString() %>
               </div>
             </div>
 
+            <!-- Voting Section -->
             <div class="d-flex justify-content-between align-items-center mt-3">
-              <div class="d-flex gap-2 align-items-center">
-                <span class="badge badge-comment"><i class="far fa-comment"></i> Comment</span>
-            </div>
+              <div class="d-flex align-items-center">
+                <form method="POST" action="/posts/<%= post._id %>/upvote" class="me-1">
+                  <button type="submit" class="vote-btn <%= post.upvotes.includes(user._id.toString()) ? 'upvoted' : '' %>">
+                    <i class="fas fa-arrow-up"></i>
+                  </button>
+                </form>
+                <div class="vote-count"><%= post.upvotes.length - post.downvotes.length %></div>
+                <form method="POST" action="/posts/<%= post._id %>/downvote" class="ms-1">
+                  <button type="submit" class="vote-btn <%= post.downvotes.includes(user._id.toString()) ? 'downvoted' : '' %>">
+                    <i class="fas fa-arrow-down"></i>
+                  </button>
+                </form>
+              </div>
+
               <a href="/posts/<%= post._id %>" class="btn btn-outline-info btn-sm btn-view">
                 View & Comment <i class="fas fa-chevron-right ms-1"></i>
               </a>

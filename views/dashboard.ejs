@@ -1,46 +1,69 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
     body[data-theme="dark"] {
       background-color: #121212;
       color: #f5f5f5;
     }
+
+    .dropdown-menu.show {
+      background-color: #1f1f1f !important;
+      color: #fff !important;
+      border: 1px solid #444;
+    }
+
     .card, .dropdown-menu, .form-control, .form-select {
       background-color: #1f1f1f !important;
       color: #ffffff !important;
       border: 1px solid #333;
     }
+
     .dropdown-menu {
       background-color: #1f1f1f !important;
       color: #f8f9fa !important;
       border: 1px solid #444;
     }
+
+    .dropdown-item:hover,
+    .dropdown-item:focus,
+    .dropdown-item:active {
+      background-color: #2a2a2a !important;
+      color: #fff !important;
+    }
+
     .dropdown-item {
       color: #f8f9fa !important;
     }
+
     .dropdown-item.text-muted {
       color: #ccc !important;
     }
+
     input::placeholder, textarea::placeholder {
       color: #bbb !important;
     }
+
     .navbar, .btn, .badge {
       border-radius: 0.5rem;
     }
+
     .post-card { transition: transform 0.2s; }
     .post-card:hover { transform: translateY(-2px); }
+
     .vote-count { min-width: 30px; text-align: center; font-weight: bold; }
     .vote-btn { border: none; background: none; padding: 0 5px; }
     .vote-btn:hover { color: #0d6efd; }
     .upvoted  { color: #ff4500; }
     .downvoted{ color: #7193ff; }
+
     a.text-info:hover { text-decoration: underline; }
+
     .btn-info, .btn-warning, .btn-success {
       box-shadow: 0 0 5px rgba(0,0,0,0.3);
     }
@@ -113,7 +136,7 @@
                 <select name="topicId" class="form-select" required>
                   <option value="">Select a topic</option>
                   <% userTopics.forEach(topic => { %>
-                    <option value="<%= topic._id %>">#<%= topic.name %></option>
+                    <option value="<%= topic._id %>"><%= topic.name %></option>
                   <% }) %>
                 </select>
               </div>
@@ -131,7 +154,7 @@
         <% if (topicPostMap && Object.keys(topicPostMap).length > 0) { %>
           <% Object.keys(topicPostMap).forEach(topicName => {
                if (topicPostMap[topicName] && topicPostMap[topicName].length > 0) { %>
-            
+
             <h5 class="mt-4 text-info"><i class="fas fa-hashtag"></i> <%= topicName %></h5>
             <% const posts = topicPostMap[topicName]; %>
             <% posts.forEach(post => { %>
@@ -214,7 +237,7 @@
                 <% }) %>
               </ul>
             <% } else { %>
-              <p class="text-muted">You are not subscribed to any topics yet.</p>
+              <p class="text-white">You are not subscribed to any topics yet.</p>
             <% } %>
             <a class="btn btn-success mt-3" href="/topics/browse">🌐 Explore More Topics</a>
           </div>
