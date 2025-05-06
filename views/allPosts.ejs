@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <title>All Posts</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background-color: #121212;
+      color: #f1f1f1;
+    }
+
+    .card {
+      background-color: #1e1e1e;
+      border: 1px solid #333;
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: scale(1.01);
+      box-shadow: 0 0 15px rgba(0, 123, 255, 0.2);
+    }
+
+    .author-badge {
+      font-size: 0.85rem;
+      background-color: #0d6efd;
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 0.25rem;
+      font-weight: 500;
+    }
+
+    .meta {
+      font-size: 0.85rem;
+      color: #ccc;
+    }
+
+    .meta a {
+      color: #00bfff;
+    }
+
+    .meta a:hover {
+      text-decoration: underline;
+    }
+
+    .post-text {
+      font-size: 1rem;
+      color: #ddd;
+    }
+
+    .btn-view {
+      font-size: 0.85rem;
+      padding: 4px 10px;
+    }
+
+    .badge-comment {
+      font-size: 0.8rem;
+      background-color: #6c757d;
+    }
+
+    .time {
+      font-size: 0.85rem;
+      color: #bbb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <a href="/api/users/dashboard" class="btn btn-secondary mb-4 shadow-sm">
+      <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <h2 class="mb-4 fw-bold border-bottom pb-2"><i class="fas fa-globe"></i> All Posts</h2>
+
+    <% if (allPosts && allPosts.length > 0) { %>
+      <% allPosts.forEach(post => { %>
+        <div class="card mb-4 shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h5 class="card-title mb-0">
+                <a href="/posts/<%= post._id %>" class="text-info text-decoration-none">
+                  <%= post.title %>
+                </a>
+              </h5>
+              <span class="author-badge">
+                <i class="fas fa-user"></i> <%= post.author.username %>
+              </span>
+            </div>
+
+            <p class="post-text"><%= post.content %></p>
+
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <div class="meta">
+                <i class="fas fa-hashtag"></i>
+                <a href="/topics/<%= post.topic._id %>">#<%= post.topic.name %></a>
+              </div>
+              <div class="time">
+                <i class="far fa-clock"></i> <%= new Date(post.createdAt).toLocaleString() %>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <div class="d-flex gap-2 align-items-center">
+                <span class="badge badge-comment"><i class="far fa-comment"></i> <%= post.comments?.length || 0 %> Comments</span>
+              </div>
+              <a href="/posts/<%= post._id %>" class="btn btn-outline-info btn-sm btn-view">
+                View & Comment <i class="fas fa-chevron-right ms-1"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <div class="alert alert-info text-center">No posts available at the moment.</div>
+    <% } %>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
