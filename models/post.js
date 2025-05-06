@@ -1,7 +1,7 @@
-// controllers/postController.js  (or models/post.js if you keep it there)
+// models/post.js
 const mongoose   = require('mongoose');
 const dbInstance = require('../utils/db')();
-const eventBus   = require('../observers/eventBus');  // <-- Observer bus
+const eventBus   = require('../observers/eventBus');
 
 // Post schema
 const postSchema = new mongoose.Schema({
@@ -46,10 +46,14 @@ const postSchema = new mongoose.Schema({
   }
 });
 
+// Add a virtual field for comment count
+postSchema.virtual('commentCount').get(function() {
+  return this.comments.length;
+});
+
 const PostModel = dbInstance.getModel('Post', postSchema);
 
 class Post {
-  // Create a new post AND emit an update event
   async create(title, content, authorId, topicId) {
     const post = new PostModel({
       title,
@@ -59,7 +63,6 @@ class Post {
     });
     const saved = await post.save();
 
-    // Notify observers that this topic got a new post
     eventBus.emit('topic:updated', {
       topicId:   saved.topic.toString(),
       postId:    saved._id.toString(),
@@ -110,13 +113,29 @@ class Post {
       { new: true }
     );
   }
+  async delete(postId, userId) {
+    const post = await PostModel.findOne({ _id: postId, author: userId });
+    if (!post) {
+      throw new Error('Post not found or unauthorized');
+    }
+    return await PostModel.deleteOne({ _id: postId });
+  }
+
+   getPostById(postId) {
+    return  PostModel.findById(postId)
+      .populate('author', 'username')
+      .populate('topic', 'name');
+  }
 }
 
-// Singleton export
+// Export both singleton and model
 let postInstance = null;
+
 module.exports = () => {
   if (!postInstance) {
     postInstance = new Post();
   }
   return postInstance;
 };
+
+module.exports.model = PostModel; 

@@ -44,6 +44,27 @@ class MessageController {
       res.status(500).json({ error: err.message });
     }
   }
+  async deleteMessage(req, res) {
+    try {
+      const { messageId } = req.params;
+      const userId = req.user._id;
+  
+      const deletedMessage = await Message().delete(messageId, userId);
+      
+      if (req.accepts('json')) {
+        return res.json({ success: true, message: 'Message deleted' });
+      }
+      
+      res.redirect('back'); // Redirects back to the previous page
+    } catch (err) {
+      if (req.accepts('json')) {
+        return res.status(403).json({ error: err.message });
+      }
+      
+      req.flash('error', err.message);
+      res.redirect('back');
+    }
+  }
 }
 
 // Singleton
