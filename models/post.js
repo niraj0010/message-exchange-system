@@ -122,4 +122,6 @@ module.exports = () => {
   return postInstance;
 };
 
+
 module.exports.model = PostModel;
+

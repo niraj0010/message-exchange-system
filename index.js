@@ -11,13 +11,18 @@ const userRoutes    = require('./routes/userRoutes');
 const topicRoutes   = require('./routes/topicRoute');
 const postRoutes    = require('./routes/postRoute');
 const statsRoute    = require('./routes/statsRoute');
-const commentRoutes = require('./routes/commentRoute'); // 👈 Add this line
+
+const commentRoutes = require('./routes/commentRoute'); //  Add this line
+
+
+
 
 const app = express();
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 
 app.use(session({
   secret: process.env.SESSION_SECRET || 'keyboard-cat',
@@ -35,7 +40,8 @@ app.use('/api/users',    userRoutes);
 app.use('/topics',       topicRoutes);
 app.use('/posts',        postRoutes);
 app.use('/notifications', require('./routes/notificationRoute'));
-app.use('/api/comments', commentRoutes); // 👈 Register the route here
+
+app.use('/api/comments', commentRoutes); //
 app.use('/',             statsRoute);
 
 // ─── Default Redirect ─────────────────────────────────────────────────────────
