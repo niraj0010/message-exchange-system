@@ -56,19 +56,25 @@ class Post {
       .sort({ createdAt: -1 });
   }
 
-  async getPostsForUserSubscriptions(userId, limit = 2) {
+  async getPostsForUserSubscriptions(userId, limitPerTopic = 2) {
     const Topic = require('./topic')();
     const subscribedTopics = await Topic.getSubscribedTopics(userId);
-    const topicIds = subscribedTopics.map(t => t._id);
-
-    const results = await PostModel.find({ topic: { $in: topicIds } })
-      .populate('author', 'username')
-      .populate('topic', 'name')
-      .sort({ createdAt: -1 });
-
-    return results.slice(0, Number(limit)); // ensure exactly 2
+  
+    const result = {};
+  
+    for (const topic of subscribedTopics) {
+      const posts = await PostModel.find({ topic: topic._id })
+        .populate('author', 'username')
+        .populate('topic', 'name')
+        .sort({ createdAt: -1 })
+        .limit(limitPerTopic);
+  
+      result[topic.name] = posts; // key = topic name for simplicity in EJS
+    }
+  
+    return result;
   }
-
+  
   async getAllPosts() {
     return await PostModel.find({})
       .populate('author', 'username')

@@ -66,17 +66,18 @@ exports.loginUser = async (req, res) => {
 };
 
 // Render dashboard
+// Render dashboard
 exports.getDashboard = async (req, res) => {
   if (!req.session.user) {
     return res.redirect('/api/users/login');
   }
 
-  const user   = req.session.user;
+  const user = req.session.user;
   const userId = user._id;
 
   try {
     const topics = await topicModel.getSubscribedTopics(userId);
-    const posts  = await postModel.getPostsForUserSubscriptions(userId);
+    const topicPostMap = await postModel.getPostsForUserSubscriptions(userId, 2); // Top 2 per topic
 
     const unreadCount = await Notification.countDocuments({
       user: userId,
@@ -89,8 +90,8 @@ exports.getDashboard = async (req, res) => {
 
     res.render('dashboard', {
       user,
-      userTopics:    topics,
-      posts,
+      userTopics: topics,
+      topicPostMap,
       unreadCount,
       notifications
     });
@@ -99,6 +100,7 @@ exports.getDashboard = async (req, res) => {
     res.status(500).send('Error loading dashboard');
   }
 };
+
 
 // POST /api/users/logout
 exports.logoutUser = (req, res, next) => {

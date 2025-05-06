@@ -29,14 +29,15 @@ class PostController {
     try {
       const user = req.session.user;
       if (!user) return res.redirect('/api/users/login');
-
-      const posts = await postModel.getPostsForUserSubscriptions(user._id, 2); // top 2 recent posts
-      res.render('dashboard', { posts, user });
+  
+      const topicPostMap = await postModel.getPostsForUserSubscriptions(user._id, 2);
+      res.render('dashboard', { topicPostMap, user });
     } catch (error) {
       console.error('renderHomePage error:', error);
       res.status(500).send('Error loading home page');
     }
   }
+  
 
   async renderAllPostsPage(req, res) {
     try {
