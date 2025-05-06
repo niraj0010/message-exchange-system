@@ -9,20 +9,13 @@ class PostController {
       const sessionUser = req.session.user;
       if (!sessionUser) return res.status(401).send('You must be logged in to post');
 
-      const authorId = sessionUser._id.toString();
-      const authorName = sessionUser.username;
-
-      if (!title || !content || !topicId) {
-        return res.status(400).send('All fields are required');
-      }
-
-      const saved = await postModel.create(title, content, authorId, topicId);
+      const saved = await postModel.create(title, content, sessionUser._id, topicId);
 
       eventBus.emit('topic:updated', {
         topicId,
         postTitle: saved.title,
-        author: authorName,
-        authorId
+        author: sessionUser.username,
+        authorId: sessionUser._id.toString()
       });
 
       res.redirect('/api/users/dashboard');
@@ -32,37 +25,41 @@ class PostController {
     }
   }
 
-  async getPostsByTopic(req, res) {
-    try {
-      const { topicId } = req.params;
-      const posts = await postModel.getPostsByTopic(topicId);
-
-      // Ensure `commentCount` is populated as a virtual field
-      res.json(posts);
-    } catch (error) {
-      console.error('getPostsByTopic error:', error);
-      res.status(500).send('Error retrieving posts');
-    }
-  }
-
-  async renderCreatePostPage(req, res) {
-    const { topicId } = req.params;
-    const user = req.session.user;
-    if (!user) return res.redirect('/api/users/login');
-    res.render('create-post', { topicId, user });
-  }
-
   async renderHomePage(req, res) {
     try {
       const user = req.session.user;
       if (!user) return res.redirect('/api/users/login');
-      const posts = await postModel.getPostsForUserSubscriptions(user._id);
 
-      // `commentCount` will be available as a virtual field
+      const posts = await postModel.getPostsForUserSubscriptions(user._id, 2); // top 2 recent posts
       res.render('dashboard', { posts, user });
     } catch (error) {
       console.error('renderHomePage error:', error);
       res.status(500).send('Error loading home page');
+    }
+  }
+
+  async renderAllPostsPage(req, res) {
+    try {
+      const user = req.session.user;
+      if (!user) return res.redirect('/api/users/login');
+
+      const allPosts = await postModel.getAllPosts();
+      res.render('allPosts', { allPosts, user });
+
+    } catch (error) {
+      console.error('renderAllPostsPage error:', error);
+      res.status(500).send('Failed to load all posts');
+    }
+  }
+
+  async getPostsByTopic(req, res) {
+    try {
+      const { topicId } = req.params;
+      const posts = await postModel.getPostsByTopic(topicId);
+      res.json(posts);
+    } catch (error) {
+      console.error('getPostsByTopic error:', error);
+      res.status(500).send('Error retrieving posts');
     }
   }
 
@@ -91,14 +88,26 @@ class PostController {
       res.status(500).send('Error downvoting post');
     }
   }
+
+  async renderCreatePostPage(req, res) {
+    try {
+      const { topicId } = req.query; // or req.params depending on your frontend
+      const user = req.session.user;
+      if (!user) return res.redirect('/api/users/login');
+      res.render('create-post', { topicId, user });
+    } catch (err) {
+      console.error('renderCreatePostPage error:', err);
+      res.status(500).send('Failed to render create post page');
+    }
+  }
+  
+
   async deletePost(req, res) {
     try {
       const { postId } = req.params;
       const user = req.session.user;
-      if (!user) {
-        return res.status(401).send('Unauthorized');
-      }
-  
+      if (!user) return res.status(401).send('Unauthorized');
+
       await postModel.delete(postId, user._id);
       res.redirect('/api/users/dashboard');
     } catch (error) {
@@ -107,47 +116,11 @@ class PostController {
     }
   }
 
- 
-  async updatePost(req, res) {
-    try {
-      const { postId } = req.params;
-      const { title, content } = req.body;
-      const user = req.session.user;
-      if (!user) return res.status(401).send('Unauthorized');
-
-      const updated = await postModel.update(postId, user._id, { title, content });
-      if (!updated) return res.status(403).send('Not authorized to update this post');
-
-      res.redirect('/api/users/dashboard');
-    } catch (error) {
-      console.error('updatePost error:', error);
-      res.status(500).send('Error updating post');
-    }
-  }
-
-  async renderEditPostPage(req, res) {
-    try {
-      const { postId } = req.params;
-      const user = req.session.user;
-      if (!user) return res.redirect('/api/users/login');
-      const post = await postModel.getById(postId);
-      if (!post || post.authorId.toString() !== user._id.toString()) {
-        return res.status(403).send('Unauthorized to edit this post');
-      }
-      res.render('edit-post', { post, user });
-    } catch (error) {
-      console.error('renderEditPostPage error:', error);
-      res.status(500).send('Error loading edit form');
-    }
-  }
-
   async renderPostDetailPage(req, res) {
     try {
       const { id } = req.params;
-      const post = await postModel.getPostById(id).exec(); // Ensure virtual fields are populated
-      if (!post) {
-        return res.status(404).send('Post not found');
-      }
+      const post = await postModel.getPostById(id).exec();
+      if (!post) return res.status(404).send('Post not found');
       res.render('post-detail', { post });
     } catch (error) {
       console.error('renderPostDetailPage error:', error);
@@ -159,30 +132,16 @@ class PostController {
     try {
       const { id } = req.params;
       const user = req.session.user || req.user;
-      
-      if (!user) {
-        return res.redirect('/login');
-      }
-  
-      // Get post with populated data
-      const post = await postModel.getPostById(id)
-        .exec(); 
-  
-      if (!post) {
-        return res.status(404).send('Post not found');
-      }
-  
-      // Get comments with populated user data
+      if (!user) return res.redirect('/login');
+
+      const post = await postModel.getPostById(id).exec();
+      if (!post) return res.status(404).send('Post not found');
+
       const comments = await commentModel.find({ post: id })
         .populate('user', 'username')
         .sort({ createdAt: 1 });
-  
-      res.render('postDetail', {
-        post,
-        comments,
-        user
-      });
-      
+
+      res.render('postDetail', { post, comments, user });
     } catch (error) {
       console.error('getPostDetail error:', error);
       res.status(500).render('error', {
@@ -192,6 +151,5 @@ class PostController {
     }
   }
 }
-
 
 module.exports = () => new PostController();

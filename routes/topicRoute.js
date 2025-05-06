@@ -1,20 +1,27 @@
 const express = require('express');
 const router = express.Router();
-const controller = require('../controllers/topicController')();
-const postController = require('../controllers/postController')();
+const topicController = require('../controllers/topicController')();
 
-// Topic routes
-router.post('/', controller.createTopic.bind(controller));
-router.post('/:topicId/subscribe', controller.subscribeToTopic.bind(controller));
-router.post('/:topicId/unsubscribe', controller.unsubscribeFromTopic.bind(controller));
-router.get('/', controller.getAllTopics.bind(controller));
-router.get('/subscribed', controller.getSubscribedTopics.bind(controller));
-router.get('/:topicId/stats', controller.getTopicStats.bind(controller));
-router.get('/browse', controller.renderBrowseTopicsPage.bind(controller));
-router.get('/stats', controller.renderStatsPage.bind(controller));
+// 📄 GET: Browse topics page
+router.get('/browse', topicController.renderBrowseTopicsPage.bind(topicController));
 
-// Topic-specific post creation
-router.get('/:topicId/posts/create', postController.renderCreatePostPage.bind(postController));
-router.post('/:topicId/posts', postController.createPost.bind(postController));
+// ➕ POST: Create a new topic
+router.post('/', topicController.createTopic.bind(topicController));
+
+// ✅ Subscribe and unsubscribe
+router.post('/:topicId/subscribe', topicController.subscribeToTopic.bind(topicController));
+router.post('/:topicId/unsubscribe', topicController.unsubscribeFromTopic.bind(topicController));
+
+// 📊 GET: Topic stats page
+router.get('/stats', topicController.renderStatsPage.bind(topicController));
+
+// 📄 GET: View specific topic (with posts)
+router.get('/:topicId', topicController.renderTopicPage.bind(topicController));
+
+// 🔎 GET: Subscribed topics (API)
+router.get('/api/subscribed', topicController.getSubscribedTopics.bind(topicController));
+
+// 🔢 GET: Specific topic stats (API)
+router.get('/:topicId/stats', topicController.getTopicStats.bind(topicController));
 
 module.exports = router;
